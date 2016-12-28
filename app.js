@@ -338,42 +338,32 @@ app.get('/api/favorites', function(request, response) {
     var i = 0;
 
 
-    db.list(function(err, body) {
-        if (!err) {
-            var len = body.rows.length;
-            console.log('total # of docs -> ', len);
+    db.view('screening', 'unclassified-tweets', function(err, body) {
+      if (!err) {
+        db.get(body.rows[0].id, {
+            revs_info: true
+        }, function(err, doc) {
+            if (!err) {
+                console.log('tweet -> ', doc.text);
+                var responseData = createResponseData(
+                  doc._id,
+                  doc._rev,
+                  doc.text, []);
 
+                docList.push(responseData);
 
-            console.log('loading tweet ->', body.rows[0].id);
-            db.get(body.rows[0].id, {
-                revs_info: true
-            }, function(err, doc) {
-                if (!err) {
-                    console.log('tweet -> ', doc.text);
-                    var responseData = createResponseData(
-                      doc._id,
-                      doc._rev,
-                      doc.text, []);
+                response.write(JSON.stringify(docList));
+                console.log('ending response...');
+                response.end();
 
-                    docList.push(responseData);
-
-                    response.write(JSON.stringify(docList));
-                    console.log('ending response...');
-                    response.end();
-
-                } else {
-                    console.log(err);
-                }
-            });
-
-
-        } else {
-            console.log(err);
-        }
+            } else {
+                console.log(err);
+            }
+        });
+      } else {
+          console.log(err);
+      }
     });
-
-
-
 
 });
 
